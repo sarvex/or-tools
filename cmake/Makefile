@@ -70,6 +70,23 @@ help:
 	@echo -e "\te.g. 'make alpine_cpp_build'"
 	@echo -e "\te.g. 'make archlinux_cpp_build'"
 	@echo
+	@echo -e "\tBuild using docker buildx with a platform specified."
+	@echo -e "\t${BOLD}<platform>_<distro>_<stage>${RESET}: build <stage> docker image for a specific distro."
+	@echo -e "\t${BOLD}save_<platform>_<distro>_<stage>${RESET}: Save the <stage> docker image for a specific distro."
+	@echo -e "\t${BOLD}sh_<platform>_<distro>_<stage>${RESET}: run a container using the <stage> docker image specified (debug purpose)."
+	@echo -e "\t${BOLD}clean_<platform>${RESET}: Remove cache and docker image."
+	@echo -e "\t${BOLD}clean_platforms${RESET}: Remove ALL cache and docker image."
+	@echo
+	@echo -e "\tWith ${BOLD}<platform>${RESET}:"
+	@echo -e "\t\t${BOLD}amd64${RESET}: linux/amd64 (x86_64)"
+	@echo -e "\t\t${BOLD}arm64${RESET}: linux/arm64 (aarch64, arm64v8)"
+	@echo -e "\t\t${BOLD}mips64${RESET}: linux/mips64 (mips 64bits)"
+	@echo -e "\t\t${BOLD}ppc64${RESET}: linux/ppc64 (PowerPC 64Bits)"
+	@echo -e "\t\t${BOLD}ppc64le${RESET}: linux/ppc64le (PowerPC 64Bits Little Endian)"
+	@echo -e "\t\t${BOLD}riscv64${RESET}: linux/riscv64 (RISC-V 64bits)"
+	@echo -e "\te.g. 'make amd64_ubuntu_test'"
+	@echo -e "\tDocker image unavailable: arm64_archlinux"
+	@echo
 	@echo -e "\tBuild using a toolchain."
 	@echo -e "\t${BOLD}<toolchain>_<toolchain_stage>${RESET}: build <stage> docker image for a specific toolchain target."
 	@echo -e "\t${BOLD}save_<toolchain>_<toolchain_stage>${RESET}: Save the <stage> docker image for a specific platform."
