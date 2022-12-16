@@ -42,6 +42,7 @@
 #include "ortools/base/log.h"
 #include "ortools/base/map_util.h"
 #include "ortools/base/protoutil.h"
+#include "ortools/base/status_builder.h"
 #include "ortools/base/status_macros.h"
 #include "ortools/math_opt/callback.pb.h"
 #include "ortools/math_opt/core/invalid_indicators.h"
@@ -71,6 +72,7 @@ namespace {
 
 constexpr SupportedProblemStructures kGurobiSupportedStructures = {
     .integer_variables = SupportType::kSupported,
+    .multi_objectives = SupportType::kSupported,
     .quadratic_objectives = SupportType::kSupported,
     .quadratic_constraints = SupportType::kSupported,
     .sos1_constraints = SupportType::kSupported,
@@ -823,6 +825,7 @@ absl::StatusOr<SolveResultProto> GurobiSolver::ExtractSolveResultProto(
 
 absl::StatusOr<GurobiSolver::SolutionsAndClaims> GurobiSolver::GetSolutions(
     const ModelSolveParametersProto& model_parameters) {
+  // Note that all multi-objective models will have `IsMip()` return true.
   ASSIGN_OR_RETURN(const bool is_mip, IsMIP());
   ASSIGN_OR_RETURN(const bool is_qp, IsQP());
   ASSIGN_OR_RETURN(const bool is_qcp, IsQCP());
@@ -897,6 +900,19 @@ absl::StatusOr<GurobiSolver::SolutionsAndClaims> GurobiSolver::GetMipSolutions(
     ASSIGN_OR_RETURN(const double sol_val,
                      gurobi_->GetDoubleAttr(GRB_DBL_ATTR_POOLOBJVAL));
     primal_solution.set_objective_value(sol_val);
+    if (is_multi_objective_mode()) {
+      for (const auto [id, grb_index] : multi_objectives_map_) {
+        RETURN_IF_ERROR(gurobi_->SetIntParam(GRB_INT_PAR_OBJNUMBER, grb_index));
+        ASSIGN_OR_RETURN(const double obj_val,
+                         gurobi_->GetDoubleAttr(GRB_DBL_ATTR_OBJNVAL));
+        // If unset, this is the primary objective. We have already queried its
+        // value via PoolObjVal above.
+        if (id.has_value()) {
+          (*primal_solution.mutable_auxiliary_objective_values())[*id] =
+              obj_val;
+        }
+      }
+    }
     primal_solution.set_feasibility_status(SOLUTION_STATUS_FEASIBLE);
     ASSIGN_OR_RETURN(
         const std::vector<double> grb_var_values,
@@ -908,6 +924,8 @@ absl::StatusOr<GurobiSolver::SolutionsAndClaims> GurobiSolver::GetMipSolutions(
         std::move(primal_solution);
   }
 
+  ASSIGN_OR_RETURN(const int grb_termination,
+                   gurobi_->GetIntAttr(GRB_INT_ATTR_STATUS));
   // Set solution claims
   ASSIGN_OR_RETURN(const double best_dual_bound, GetBestDualBound());
   // Note: here the existence of a dual solution refers to a dual solution to
@@ -917,18 +935,24 @@ absl::StatusOr<GurobiSolver::SolutionsAndClaims> GurobiSolver::GetMipSolutions(
   // that best_dual_bound being finite implies the existence of the trivial
   // convex relaxation given by (assuming a minimization problem with objective
   // function c^T x): min{c^T x : c^T x >= best_dual_bound}.
+  //
+  // If this is a multi-objective model, Gurobi v10 does not expose ObjBound.
+  // Instead, we fake its existence for optimal solves only.
   const SolutionClaims solution_claims = {
       .primal_feasible_solution_exists = num_solutions > 0,
-      .dual_feasible_solution_exists = std::isfinite(best_dual_bound)};
+      .dual_feasible_solution_exists =
+          std::isfinite(best_dual_bound) ||
+          (is_multi_objective_mode() && grb_termination == GRB_OPTIMAL)};
 
   // Check consistency of solutions, bounds and statuses.
-  ASSIGN_OR_RETURN(const int grb_termination,
-                   gurobi_->GetIntAttr(GRB_INT_ATTR_STATUS));
   if (grb_termination == GRB_OPTIMAL && num_solutions == 0) {
     return absl::InternalError(
         "GRB_INT_ATTR_STATUS == GRB_OPTIMAL, but solution pool is empty.");
   }
-  if (grb_termination == GRB_OPTIMAL && !std::isfinite(best_dual_bound)) {
+  // As set above, in multi-objective mode the dual bound is not informative and
+  // it will not pass this validation.
+  if (!is_multi_objective_mode() && grb_termination == GRB_OPTIMAL &&
+      !std::isfinite(best_dual_bound)) {
     return absl::InternalError(
         "GRB_INT_ATTR_STATUS == GRB_OPTIMAL, but GRB_DBL_ATTR_OBJBOUND is "
         "unavailable or infinite.");
@@ -1054,7 +1078,11 @@ absl::StatusOr<double> GurobiSolver::GetBestPrimalBound(
 }
 
 absl::StatusOr<double> GurobiSolver::GetBestDualBound() {
-  if (gurobi_->IsAttrAvailable(GRB_DBL_ATTR_OBJBOUND)) {
+  // As of v9.0.2, on multi objective models Gurobi incorrectly reports that
+  // ObjBound is available. We work around this by adding a check if we are in
+  // multi objective mode.
+  if (gurobi_->IsAttrAvailable(GRB_DBL_ATTR_OBJBOUND) &&
+      !is_multi_objective_mode()) {
     ASSIGN_OR_RETURN(const double obj_bound,
                      gurobi_->GetDoubleAttr(GRB_DBL_ATTR_OBJBOUND));
     // Note: Unbounded models return GRB_DBL_ATTR_OBJBOUND = GRB_INFINITY so
@@ -1331,6 +1359,71 @@ absl::Status GurobiSolver::AddNewVariables(
       /*vtype=*/variable_type, variable_names));
   num_gurobi_variables_ += num_new_variables;
 
+  return absl::OkStatus();
+}
+
+absl::Status GurobiSolver::AddSingleObjective(const ObjectiveProto& objective) {
+  const int model_sense = objective.maximize() ? GRB_MAXIMIZE : GRB_MINIMIZE;
+  RETURN_IF_ERROR(gurobi_->SetIntAttr(GRB_INT_ATTR_MODELSENSE, model_sense));
+  RETURN_IF_ERROR(
+      gurobi_->SetDoubleAttr(GRB_DBL_ATTR_OBJCON, objective.offset()));
+  RETURN_IF_ERROR(UpdateDoubleListAttribute(objective.linear_coefficients(),
+                                            GRB_DBL_ATTR_OBJ, variables_map_));
+  RETURN_IF_ERROR(
+      ResetQuadraticObjectiveTerms(objective.quadratic_coefficients()));
+  return absl::OkStatus();
+}
+
+absl::Status GurobiSolver::AddMultiObjectives(
+    const ObjectiveProto& primary_objective,
+    const google::protobuf::Map<int64_t, ObjectiveProto>&
+        auxiliary_objectives) {
+  absl::flat_hash_set<int64_t> priorities = {primary_objective.priority()};
+  for (const auto& [id, objective] : auxiliary_objectives) {
+    const int64_t priority = objective.priority();
+    if (!priorities.insert(priority).second) {
+      return util::InvalidArgumentErrorBuilder()
+             << "repeated objective priority: " << priority;
+    }
+  }
+  const bool is_maximize = primary_objective.maximize();
+  RETURN_IF_ERROR(gurobi_->SetIntAttr(
+      GRB_INT_ATTR_MODELSENSE, is_maximize ? GRB_MAXIMIZE : GRB_MINIMIZE));
+  RETURN_IF_ERROR(AddNewMultiObjective(
+      primary_objective, /*objective_id=*/std::nullopt, is_maximize));
+  for (const auto& [id, objective] : auxiliary_objectives) {
+    RETURN_IF_ERROR(AddNewMultiObjective(objective, id, is_maximize));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GurobiSolver::AddNewMultiObjective(
+    const ObjectiveProto& objective,
+    const std::optional<AuxiliaryObjectiveId> objective_id,
+    const bool is_maximize) {
+  std::vector<GurobiVariableIndex> var_indices;
+  var_indices.reserve(objective.linear_coefficients().ids_size());
+  for (const int64_t var_id : objective.linear_coefficients().ids()) {
+    var_indices.push_back(variables_map_.at(var_id));
+  }
+  const GurobiMultiObjectiveIndex grb_index =
+      static_cast<int>(multi_objectives_map_.size());
+  // * MathOpt and Gurobi have different priority orderings (lower and higher
+  //   are more important, respectively). Therefore, we negate priorities from
+  //   MathOpt (which is OK as they are restricted to be nonnegative in MathOpt,
+  //   but not in Gurobi).
+  // * Tolerances are set to default values, as of Gurobi v9.5.
+  // * Gurobi exposes only a single objective sense for the entire model. We use
+  //   the objective weight to handle mixing senses across objectives (weight of
+  //   1 if objective sense agrees with model sense, -1 otherwise).
+  RETURN_IF_ERROR(gurobi_->SetNthObjective(
+      /*index=*/grb_index, /*priority=*/static_cast<int>(-objective.priority()),
+      /*weight=*/objective.maximize() == is_maximize ? +1.0 : -1.0,
+      /*abs_tol=*/1.0e-6,
+      /*rel_tol=*/0.0, /*name=*/objective.name(),
+      /*constant=*/objective.offset(), /*lind=*/var_indices,
+      /*lval=*/objective.linear_coefficients().values()));
+  multi_objectives_map_.insert({objective_id, grb_index});
   return absl::OkStatus();
 }
 
@@ -1696,17 +1789,12 @@ absl::Status GurobiSolver::LoadModel(const ModelProto& input_model) {
 
   RETURN_IF_ERROR(ChangeCoefficients(input_model.linear_constraint_matrix()));
 
-  const int model_sense =
-      input_model.objective().maximize() ? GRB_MAXIMIZE : GRB_MINIMIZE;
-  RETURN_IF_ERROR(gurobi_->SetIntAttr(GRB_INT_ATTR_MODELSENSE, model_sense));
-  RETURN_IF_ERROR(gurobi_->SetDoubleAttr(GRB_DBL_ATTR_OBJCON,
-                                         input_model.objective().offset()));
-
-  RETURN_IF_ERROR(
-      UpdateDoubleListAttribute(input_model.objective().linear_coefficients(),
-                                GRB_DBL_ATTR_OBJ, variables_map_));
-  RETURN_IF_ERROR(ResetQuadraticObjectiveTerms(
-      input_model.objective().quadratic_coefficients()));
+  if (input_model.auxiliary_objectives().empty()) {
+    RETURN_IF_ERROR(AddSingleObjective(input_model.objective()));
+  } else {
+    RETURN_IF_ERROR(AddMultiObjectives(input_model.objective(),
+                                       input_model.auxiliary_objectives()));
+  }
   return absl::OkStatus();
 }
 
@@ -2031,6 +2119,19 @@ absl::StatusOr<bool> GurobiSolver::Update(
   if (!UpdateIsSupported(model_update, kGurobiSupportedStructures)) {
     return false;
   }
+  // As of 2022-12-06 we do not support incrementalim for multi-objective
+  // models: not adding/deleting/modifying the auxiliary objectives...
+  if (const AuxiliaryObjectivesUpdatesProto& objs_update =
+          model_update.auxiliary_objectives_updates();
+      !objs_update.deleted_objective_ids().empty() ||
+      !objs_update.new_objectives().empty() ||
+      !objs_update.objective_updates().empty()) {
+    return false;
+  }
+  // ...or modifying the primary objective of a multi-objective model.
+  if (is_multi_objective_mode() && model_update.has_objective_updates()) {
+    return false;
+  }
 
   RETURN_IF_ERROR(AddNewVariables(model_update.new_variables()));
 
@@ -2224,6 +2325,19 @@ absl::StatusOr<std::unique_ptr<GurobiSolver>> GurobiSolver::New(
   }
   RETURN_IF_ERROR(
       ModelIsSupported(input_model, kGurobiSupportedStructures, "Gurobi"));
+  if (!input_model.auxiliary_objectives().empty() &&
+      !input_model.objective().quadratic_coefficients().row_ids().empty()) {
+    return util::InvalidArgumentErrorBuilder()
+           << "Gurobi does not support multiple objective models with "
+              "quadratic objectives";
+  }
+  for (const auto& [id, obj] : input_model.auxiliary_objectives()) {
+    if (!obj.quadratic_coefficients().row_ids().empty()) {
+      return util::InvalidArgumentErrorBuilder()
+             << "Gurobi does not support multiple objective models with "
+                "quadratic objectives";
+    }
+  }
   ASSIGN_OR_RETURN(std::unique_ptr<Gurobi> gurobi,
                    GurobiFromInitArgs(init_args));
   auto gurobi_solver = absl::WrapUnique(new GurobiSolver(std::move(gurobi)));
@@ -2244,7 +2358,7 @@ GurobiSolver::RegisterCallback(const CallbackRegistrationProto& registration,
   // https://www.gurobi.com/documentation/9.1/refman/ismip.html.
   //
   // Here we assume that we get MIP related events and use a MIP solving
-  // stragegy when IS_MIP is true.
+  // strategy when IS_MIP is true.
   ASSIGN_OR_RETURN(const int is_mip, gurobi_->GetIntAttr(GRB_INT_ATTR_IS_MIP));
 
   RETURN_IF_ERROR(CheckRegisteredCallbackEvents(
@@ -2333,6 +2447,10 @@ absl::StatusOr<InvalidIndicators> GurobiSolver::ListInvalidIndicators() const {
   // Above code may have inserted ids in non-stable order.
   invalid_indicators.Sort();
   return invalid_indicators;
+}
+
+bool GurobiSolver::is_multi_objective_mode() const {
+  return !multi_objectives_map_.empty();
 }
 
 absl::StatusOr<SolveResultProto> GurobiSolver::Solve(

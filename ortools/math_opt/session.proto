@@ -1,0 +1,102 @@
+// Copyright 2010-2022 Google LLC
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package operations_research.math_opt;
+
+import "ortools/math_opt/callback.proto";
+import "ortools/math_opt/model.proto";
+import "ortools/math_opt/model_parameters.proto";
+import "ortools/math_opt/model_update.proto";
+import "ortools/math_opt/parameters.proto";
+import "ortools/math_opt/result.proto";
+import "ortools/base/status.proto";
+
+// A solve session using a given solver.
+//
+// It stores interactions with a Solver (math_opt/core/solver.h), starting from
+// the solver creation based on `solver_type`, `model` and `initializer` values
+// followed by a series of actions. Each action can either be an Update or a
+// Solve.
+message SolveSessionProto {
+  // Action that solves the model; i.e. call Solver::Solve().
+  message Solve {
+    // One callback call.
+    message Callback {
+      // The input passed to the callback function.
+      CallbackDataProto data = 1;
+
+      // The result sent back by the application callback (may not be set if the
+      // program crashed).
+      CallbackResultProto result = 2;
+    }
+
+    // Non model specific solve parameters.
+    SolveParametersProto parameters = 1;
+
+    // Model specific solve parameters.
+    ModelSolveParametersProto model_parameters = 2;
+
+    // Callback registration parameters.
+    CallbackRegistrationProto callback_registration = 3;
+
+    // The callbacks that occurred during the solve.
+    repeated Callback callbacks = 4;
+
+    // Optional output, can be unset (for example if the program crashed).
+    oneof output {
+      // The solve result.
+      SolveResultProto result = 5;
+
+      // The failure if the solve failed.
+      util.StatusProto status = 6;
+    }
+  }
+
+  // Action that updates the model (without solving); i.e. call
+  // Solver::Update().
+  message Update {
+    ModelUpdateProto update = 1;
+
+    // Optional output, can be unset (for example if the program crashed).
+    oneof output {
+      // True if the update occurred, false if the solver did not support this
+      // update.
+      bool did_update = 2;
+
+      // The failure if the update failed.
+      util.StatusProto status = 3;
+    }
+  }
+
+  // One action.
+  message Action {
+    oneof kind {
+      Update update = 1;
+      Solve solve = 2;
+    }
+  }
+
+  // The solver to use.
+  SolverTypeProto solver_type = 1;
+
+  // The initial model to use to instantiate the solver.
+  ModelProto model = 2;
+
+  // The solver initialization parameters.
+  SolverInitializerProto initializer = 3;
+
+  // The actions applied to the solver after construction.
+  repeated Action actions = 4;
+}

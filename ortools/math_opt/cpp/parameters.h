@@ -78,6 +78,10 @@ enum class SolverType {
   // for details.
   kGlpk = SOLVER_TYPE_GLPK,
 
+  // The Embedded Conic Solver (ECOS).
+  //
+  // An interior point method (barrier) solver for LP and SOCP.
+  kEcos = SOLVER_TYPE_ECOS,
 };
 
 MATH_OPT_DEFINE_ENUM(SolverType, SOLVER_TYPE_UNSPECIFIED);

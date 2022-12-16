@@ -27,6 +27,7 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
+#include "google/protobuf/map.h"
 #include "ortools/base/linked_hash_map.h"
 #include "ortools/gurobi/environment.h"
 #include "ortools/math_opt/callback.pb.h"
@@ -89,6 +90,7 @@ class GurobiSolver : public SolverInterface {
 
   // For easing reading the code, we declare these types:
   using VariableId = int64_t;
+  using AuxiliaryObjectiveId = int64_t;
   using LinearConstraintId = int64_t;
   using QuadraticConstraintId = int64_t;
   using Sos1ConstraintId = int64_t;
@@ -96,6 +98,7 @@ class GurobiSolver : public SolverInterface {
   using IndicatorConstraintId = int64_t;
   using AnyConstraintId = int64_t;
   using GurobiVariableIndex = int;
+  using GurobiMultiObjectiveIndex = int;
   using GurobiLinearConstraintIndex = int;
   using GurobiQuadraticConstraintIndex = int;
   using GurobiSosConstraintIndex = int;
@@ -157,11 +160,11 @@ class GurobiSolver : public SolverInterface {
   using IdHashMap = gtl::linked_hash_map<int64_t, int>;
 
   absl::StatusOr<ProblemStatusProto> GetProblemStatus(
-      const int grb_termination, const SolutionClaims solution_claims);
+      int grb_termination, SolutionClaims solution_claims);
   absl::StatusOr<SolveResultProto> ExtractSolveResultProto(
       absl::Time start, const ModelSolveParametersProto& model_parameters);
   absl::Status FillRays(const ModelSolveParametersProto& model_parameters,
-                        const SolutionClaims solution_claims,
+                        SolutionClaims solution_claims,
                         SolveResultProto& result);
   absl::StatusOr<GurobiSolver::SolutionsAndClaims> GetSolutions(
       const ModelSolveParametersProto& model_parameters);
@@ -192,7 +195,8 @@ class GurobiSolver : public SolverInterface {
   absl::StatusOr<SolutionsAndClaims> GetQcpSolution(
       const ModelSolveParametersProto& model_parameters);
   // Returns solution information appropriate and available for a MIP
-  // (integrality on some/all decision variables).
+  // (integrality on some/all decision variables). Following Gurobi's API, this
+  // is also used for any multi-objective model.
   absl::StatusOr<SolutionsAndClaims> GetMipSolutions(
       const ModelSolveParametersProto& model_parameters);
 
@@ -220,6 +224,19 @@ class GurobiSolver : public SolverInterface {
       const google::protobuf::Map<IndicatorConstraintId,
                                   IndicatorConstraintProto>& constraints);
   absl::Status AddNewVariables(const VariablesProto& new_variables);
+  absl::Status AddSingleObjective(const ObjectiveProto& objective);
+  absl::Status AddMultiObjectives(
+      const ObjectiveProto& primary_objective,
+      const google::protobuf::Map<int64_t, ObjectiveProto>&
+          auxiliary_objectives);
+  // * `objective_id` is the corresponding key into `multi_objectives_map_`; see
+  //   that field for further comment.
+  // * `is_maximize` is true if the entire Gurobi model is the maximization
+  //   sense (only one sense is permitted per model to be shared by all
+  //   objectives). Note that this need not agree with `objective.maximize`.
+  absl::Status AddNewMultiObjective(
+      const ObjectiveProto& objective,
+      std::optional<AuxiliaryObjectiveId> objective_id, bool is_maximize);
   absl::Status AddNewSlacks(
       const std::vector<LinearConstraintData*>& new_slacks);
   absl::Status ChangeCoefficients(const SparseDoubleMatrixProto& matrix);
@@ -280,11 +297,15 @@ class GurobiSolver : public SolverInterface {
 
   absl::StatusOr<std::unique_ptr<GurobiCallbackData>> RegisterCallback(
       const CallbackRegistrationProto& registration, Callback cb,
-      const MessageCallback message_cb, absl::Time start,
+      MessageCallback message_cb, absl::Time start,
       SolveInterrupter* interrupter);
 
   // Returns the ids of variables and linear constraints with inverted bounds.
   absl::StatusOr<InvertedBounds> ListInvertedBounds() const;
+
+  // True if the model is in "multi-objective" mode: That is, at some point it
+  // has been modified via the multi-objective API.
+  bool is_multi_objective_mode() const;
 
   // Returns the ids of indicator constraint/variables that are invalid because
   // the indicator is not a binary variable.
@@ -301,6 +322,11 @@ class GurobiSolver : public SolverInterface {
   // Internal correspondence from variable proto IDs to Gurobi-numbered
   // variables.
   gtl::linked_hash_map<VariableId, GurobiVariableIndex> variables_map_;
+  // An unset key corresponds to the `ModelProto.objective` field; all other
+  // entries come from `ModelProto.auxiliary_objectives`.
+  absl::flat_hash_map<std::optional<AuxiliaryObjectiveId>,
+                      GurobiMultiObjectiveIndex>
+      multi_objectives_map_;
   // Internal correspondence from linear constraint proto IDs to
   // Gurobi-numbered linear constraint and extra information.
   gtl::linked_hash_map<LinearConstraintId, LinearConstraintData>

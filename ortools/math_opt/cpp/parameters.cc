@@ -72,6 +72,8 @@ std::optional<absl::string_view> Enum<SolverType>::ToOptString(
       return "cp_sat";
     case SolverType::kGlpk:
       return "glpk";
+    case SolverType::kEcos:
+      return "ecos";
   }
   return std::nullopt;
 }
@@ -79,7 +81,7 @@ std::optional<absl::string_view> Enum<SolverType>::ToOptString(
 absl::Span<const SolverType> Enum<SolverType>::AllValues() {
   static constexpr SolverType kSolverTypeValues[] = {
       SolverType::kGscip, SolverType::kGurobi, SolverType::kGlop,
-      SolverType::kCpSat, SolverType::kGlpk,
+      SolverType::kCpSat, SolverType::kGlpk,   SolverType::kEcos,
   };
   return absl::MakeConstSpan(kSolverTypeValues);
 }

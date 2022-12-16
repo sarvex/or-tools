@@ -146,7 +146,7 @@ absl::Status ModelIsSupported(const ModelProto& model,
   if (const SupportType support = support_menu.multi_objectives;
       support != SupportType::kSupported) {
     if (!model.auxiliary_objectives().empty()) {
-      return error_status("multi objectives", support);
+      return error_status("multiple objectives", support);
     }
   }
   if (const SupportType support = support_menu.quadratic_objectives;

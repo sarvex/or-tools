@@ -146,7 +146,7 @@ namespace math_opt {
 // ModelStorage::AdvanceCheckpoint(). Note that, for newly initialized models,
 // before the first checkpoint, there is no additional memory overhead from
 // tracking changes. See
-// docs/ortools/math_opt/docs/model_building_complexity.md
+// g3doc/ortools/math_opt/g3doc/model_building_complexity.md
 // for details.
 //
 // On bad input:

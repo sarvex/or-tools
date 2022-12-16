@@ -11,30 +11,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_
-#define OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_
+#include "ortools/math_opt/io/lp_converter.h"
 
 #include <string>
 
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
+#include "ortools/base/status_macros.h"
+#include "ortools/linear_solver/linear_solver.pb.h"
+#include "ortools/linear_solver/model_exporter.h"
+#include "ortools/math_opt/io/proto_converter.h"
 #include "ortools/math_opt/model.pb.h"
 
 namespace operations_research::math_opt {
 
-// Returns the model in MPS format.
-//
-// The RemoveNames() function can be used on the model to remove names if they
-// should not be exported.
-absl::StatusOr<std::string> ModelProtoToMps(const ModelProto& model);
-
-// Reads an MPS file and converts it to a ModelProto (like MpsToModelProto
-// above, but takes a file name instead of the file contents and reads the file.
-//
-// The file can be stored as plain text or gzipped (with the .gz extension).
-//
-absl::StatusOr<ModelProto> ReadMpsFile(absl::string_view filename);
+absl::StatusOr<std::string> ModelProtoToLp(const ModelProto& model) {
+  ASSIGN_OR_RETURN(const MPModelProto mp_model_proto,
+                   MathOptModelToMPModelProto(model));
+  return ExportModelAsLpFormat(mp_model_proto, {.show_unused_variables = true});
+}
 
 }  // namespace operations_research::math_opt
-
-#endif  // OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_

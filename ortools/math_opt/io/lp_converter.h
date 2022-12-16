@@ -11,30 +11,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_
-#define OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_
+#ifndef OR_TOOLS_MATH_OPT_IO_LP_CONVERTER_H_
+#define OR_TOOLS_MATH_OPT_IO_LP_CONVERTER_H_
 
 #include <string>
 
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "ortools/math_opt/model.pb.h"
 
 namespace operations_research::math_opt {
 
-// Returns the model in MPS format.
+// Returns the model in "CPLEX LP" format.
 //
 // The RemoveNames() function can be used on the model to remove names if they
 // should not be exported.
-absl::StatusOr<std::string> ModelProtoToMps(const ModelProto& model);
-
-// Reads an MPS file and converts it to a ModelProto (like MpsToModelProto
-// above, but takes a file name instead of the file contents and reads the file.
 //
-// The file can be stored as plain text or gzipped (with the .gz extension).
-//
-absl::StatusOr<ModelProto> ReadMpsFile(absl::string_view filename);
+// For more information about the different LP file formats:
+// http://lpsolve.sourceforge.net/5.5/lp-format.htm
+// http://lpsolve.sourceforge.net/5.5/CPLEX-format.htm
+// https://www.ibm.com/docs/en/icos/12.8.0.0?topic=cplex-lp-file-format-algebraic-representation
+// http://www.gurobi.com/documentation/5.1/reference-manual/node871
+absl::StatusOr<std::string> ModelProtoToLp(const ModelProto& model);
 
 }  // namespace operations_research::math_opt
 
-#endif  // OR_TOOLS_MATH_OPT_IO_MPS_CONVERTER_H_
+#endif  // OR_TOOLS_MATH_OPT_IO_LP_CONVERTER_H_
