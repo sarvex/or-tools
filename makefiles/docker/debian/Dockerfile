@@ -11,12 +11,12 @@ RUN apt-get update -qq \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install CMake
-ENV VERSION=3.25
-ENV VERSION_FULL=3.25.2
-RUN wget -q "https://cmake.org/files/v${VERSION}/cmake-${VERSION_FULL}-linux-x86_64.sh" \
-&& chmod a+x cmake-${VERSION_FULL}-linux-x86_64.sh \
-&& ./cmake-${VERSION_FULL}-linux-x86_64.sh --prefix=/usr/local/ --skip-license \
-&& rm cmake-${VERSION_FULL}-linux-x86_64.sh
+ENV VERSION=3.18
+ENV VERSION_FULL=3.18.6
+RUN wget -q "https://cmake.org/files/v${VERSION}/cmake-${VERSION_FULL}-Linux-x86_64.sh" \
+&& chmod a+x cmake-${VERSION_FULL}-Linux-x86_64.sh \
+&& ./cmake-${VERSION_FULL}-Linux-x86_64.sh --prefix=/usr/local/ --skip-license \
+&& rm cmake-${VERSION_FULL}-Linux-x86_64.sh
 CMD [ "/bin/bash" ]
 
 FROM base AS swig
