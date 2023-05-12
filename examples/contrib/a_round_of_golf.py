@@ -77,7 +77,7 @@ def main():
   # data
   #
   n = 4
-  [Jack, Bill, Paul, Frank] = [i for i in range(n)]
+  [Jack, Bill, Paul, Frank] = list(range(n))
 
   #
   # declare variables

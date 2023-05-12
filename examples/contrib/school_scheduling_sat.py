@@ -109,7 +109,7 @@ class SchoolSchedulingSatSolver():
                             if teacher in self._problem.specialtie_teachers(subject):
                                 self._assignment[key] = self._model.NewBoolVar(name)
                             else:
-                                name = 'NO DISP ' + name
+                                name = f'NO DISP {name}'
                                 self._assignment[key] = self._model.NewIntVar(0, 0, name)
 
         # Constraints
@@ -130,34 +130,44 @@ class SchoolSchedulingSatSolver():
             for sec_idx in self._all_sections:
                 for slt_idx in self._all_slots:
                     self._model.Add(
-                        sum([
-                            self._assignment[lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx]
+                        sum(
+                            self._assignment[
+                                lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx
+                            ]
                             for sub_idx in self._all_subjects
                             for tch_idx in self._all_teachers
-                        ]) <= 1)
+                        )
+                        <= 1
+                    )
 
         # Teacher can do at most one class at a time
         for tch_idx in self._all_teachers:
             for slt_idx in self._all_slots:
                 self._model.Add(
-                    sum([
-                        self._assignment[lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx]
+                    sum(
+                        self._assignment[
+                            lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx
+                        ]
                         for lvl_idx in self._all_levels
                         for sec_idx in self._all_sections
                         for sub_idx in self._all_subjects
-                    ]) <= 1)
+                    )
+                    <= 1
+                )
 
         # Maximum work hours for each teacher
         for tch_idx in self._all_teachers:
             self._model.Add(
-                sum([
-                    self._assignment[lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx] *
-                    int(self._problem.slot_duration(slt_idx) * 10)
+                sum(
+                    self._assignment[lvl_idx, sec_idx, sub_idx, tch_idx, slt_idx]
+                    * int(self._problem.slot_duration(slt_idx) * 10)
                     for lvl_idx in self._all_levels
                     for sec_idx in self._all_sections
                     for sub_idx in self._all_subjects
                     for slt_idx in self._all_slots
-                ]) <= int(self._problem.teacher_max_hours(tch_idx) * 10))
+                )
+                <= int(self._problem.teacher_max_hours(tch_idx) * 10)
+            )
 
         # Teacher makes all the classes of a subject's course
         teacher_courses = {}
@@ -174,9 +184,12 @@ class SchoolSchedulingSatSolver():
                         self._model.AddMaxEquality(
                             teacher_courses[lvl_idx, sec_idx, sub_idx, tch_idx], temp_array)
                     self._model.Add(
-                        sum([teacher_courses[lvl_idx, sec_idx, sub_idx, tch_idx]
-                             for tch_idx in self._all_teachers
-                        ]) == 1)
+                        sum(
+                            teacher_courses[lvl_idx, sec_idx, sub_idx, tch_idx]
+                            for tch_idx in self._all_teachers
+                        )
+                        == 1
+                    )
 
 
     def print_teacher_schedule(self, tch_idx):
@@ -198,9 +211,7 @@ class SchoolSchedulingSatSolver():
         level = self._problem.levels[lvl_idx]
         section = self._problem.sections[sec_idx]
         print(f'Class: {level}-{section}')
-        total_working_hours = {}
-        for sub in self._problem.subjects:
-            total_working_hours[sub] = 0
+        total_working_hours = {sub: 0 for sub in self._problem.subjects}
         for slt_idx, slot in enumerate(self._problem.time_slots):
             for tch_idx, teacher in enumerate(self._problem.teachers):
                 for sub_idx, subject in enumerate(self._problem.subjects):
@@ -235,7 +246,7 @@ class SchoolSchedulingSatSolver():
         status = self._solver.Solve(self._model, solution_printer)
         print('Status: ', self._solver.StatusName(status))
 
-        if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             print('\n# Teachers')
             for teacher_idx in self._all_teachers:
                 self.print_teacher_schedule(teacher_idx)

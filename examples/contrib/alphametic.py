@@ -85,8 +85,7 @@ def main(problem_str="SEND+MORE=MONEY", base=10):
   #
   solver.Add(solver.AllDifferent(x))
 
-  ix = 0
-  for prob in problem:
+  for ix, prob in enumerate(problem):
     this_len = len(prob)
 
     # sum all the digits with proper exponents to a number
@@ -95,8 +94,6 @@ def main(problem_str="SEND+MORE=MONEY", base=10):
                                 for i in range(this_len)[::-1]]))
     # leading digits must be > 0
     solver.Add(x[lookup[prob[0]]] > 0)
-    ix += 1
-
   # the last number is the sum of the previous numbers
   solver.Add(solver.Sum([sums[i] for i in range(p_len - 1)]) == sums[-1])
 
@@ -156,7 +153,7 @@ if __name__ == "__main__":
   if len(sys.argv) > 2:
     base = int(sys.argv[2])
 
-  if problem == "TEST" or problem == "test":
+  if problem in ["TEST", "test"]:
     test_problems(base)
   else:
     main(problem, base)

@@ -148,19 +148,17 @@ def make_transition_matrix(pattern):
     num_states = 1
 
   t_matrix = []
-  for i in range(num_states):
-    row = []
-    for j in range(2):
-      row.append(0)
+  for _ in range(num_states):
+    row = [0 for _ in range(2)]
     t_matrix.append(row)
 
   # convert pattern to a 0/1 pattern for easy handling of
   # the states
-  tmp = [0 for i in range(num_states)]
+  tmp = [0 for _ in range(num_states)]
   c = 0
   tmp[c] = 0
   for i in range(p_len):
-    for j in range(pattern[i]):
+    for _ in range(pattern[i]):
       c += 1
       tmp[c] = 1
     if c < num_states - 1:
@@ -174,14 +172,13 @@ def make_transition_matrix(pattern):
     if tmp[i] == 0:
       t_matrix[i][0] = i + 1
       t_matrix[i][1] = i + 2
-    else:
-      if i < num_states - 1:
-        if tmp[i + 1] == 1:
-          t_matrix[i][0] = 0
-          t_matrix[i][1] = i + 2
-        else:
-          t_matrix[i][0] = i + 2
-          t_matrix[i][1] = 0
+    elif i < num_states - 1:
+      if tmp[i + 1] == 1:
+        t_matrix[i][0] = 0
+        t_matrix[i][1] = i + 2
+      else:
+        t_matrix[i][0] = i + 2
+        t_matrix[i][1] = 0
 
   # print 'The states:'
   # for i in range(num_states):
@@ -202,12 +199,8 @@ def make_transition_matrix(pattern):
 def check_rule(rules, y):
   solver = y[0].solver()
 
-  r_len = sum([1 for i in range(len(rules)) if rules[i] > 0])
-  rules_tmp = []
-  for i in range(len(rules)):
-    if rules[i] > 0:
-      rules_tmp.append(rules[i])
-
+  r_len = sum(1 for i in range(len(rules)) if rules[i] > 0)
+  rules_tmp = [rules[i] for i in range(len(rules)) if rules[i] > 0]
   transition_fn = make_transition_matrix(rules_tmp)
   n_states = len(transition_fn)
   input_max = 2
@@ -244,13 +237,10 @@ def main(rows, row_rule_len, row_rules, cols, col_rule_len, col_rules):
   board_label = []
   if rows * row_rule_len < cols * col_rule_len:
     for i in range(rows):
-      for j in range(cols):
-        board_label.append(board[i, j])
+      board_label.extend(board[i, j] for j in range(cols))
   else:
     for j in range(cols):
-      for i in range(rows):
-        board_label.append(board[i, j])
-
+      board_label.extend(board[i, j] for i in range(rows))
   #
   # constraints
   #

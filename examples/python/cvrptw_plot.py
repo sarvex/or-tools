@@ -131,8 +131,8 @@ class Customers():
                                                  num_stops)
         # The last time a delivery window can start
         latest_time = self.time_horizon - time_windows
-        start_times = [None for o in time_windows]
-        stop_times = [None for o in time_windows]
+        start_times = [None for _ in time_windows]
+        stop_times = [None for _ in time_windows]
         # Make random timedeltas, nominally from the start of the day.
         for idx in range(self.number):
             stime = int(np.random.randint(0, latest_time[idx]))
@@ -251,15 +251,13 @@ class Customers():
              np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2)
         c = 2 * np.arcsin(np.sqrt(a))
 
-        # 6367 km is the radius of the Earth
-        km = 6367 * c
-        return km
+        return 6367 * c
 
     def get_total_demand(self):
         """
         Return the total demand of all customers.
         """
-        return (sum([c.demand for c in self.customers]))
+        return sum(c.demand for c in self.customers)
 
     def return_dist_callback(self, **kwargs):
         """
@@ -373,10 +371,7 @@ class Vehicles():
 
         Vehicle = namedtuple('Vehicle', ['index', 'capacity', 'cost'])
 
-        if number is None:
-            self.number = np.size(capacity)
-        else:
-            self.number = number
+        self.number = np.size(capacity) if number is None else number
         idxs = np.array(range(0, self.number))
 
         if np.isscalar(capacity):
@@ -400,7 +395,7 @@ class Vehicles():
         ]
 
     def get_total_capacity(self):
-        return (sum([c.capacity for c in self.vehicles]))
+        return sum(c.capacity for c in self.vehicles)
 
     def return_starting_callback(self, customers, sameStartFinish=False):
         # create a different starting and finishing depot for each vehicle
@@ -454,11 +449,11 @@ def vehicle_output_string(manager, routing, plan):
         (List) dropped: list of dropped orders.
 
     """
-    dropped = []
-    for order in range(routing.Size()):
-        if (plan.Value(routing.NextVar(order)) == order):
-            dropped.append(str(order))
-
+    dropped = [
+        str(order)
+        for order in range(routing.Size())
+        if (plan.Value(routing.NextVar(order)) == order)
+    ]
     capacity_dimension = routing.GetDimensionOrDie('Capacity')
     time_dimension = routing.GetDimensionOrDie('Time')
     plan_output = ''
@@ -504,18 +499,16 @@ def build_vehicle_route(manager, routing, plan, customers, veh_number):
     """
     veh_used = routing.IsVehicleUsed(plan, veh_number)
     print('Vehicle {0} is used {1}'.format(veh_number, veh_used))
-    if veh_used:
-        route = []
-        node = routing.Start(veh_number)  # Get the starting node index
-        route.append(customers.customers[manager.IndexToNode(node)])
-        while not routing.IsEnd(node):
-            route.append(customers.customers[manager.IndexToNode(node)])
-            node = plan.Value(routing.NextVar(node))
-
-        route.append(customers.customers[manager.IndexToNode(node)])
-        return route
-    else:
+    if not veh_used:
         return None
+    node = routing.Start(veh_number)  # Get the starting node index
+    route = [customers.customers[manager.IndexToNode(node)]]
+    while not routing.IsEnd(node):
+        route.append(customers.customers[manager.IndexToNode(node)])
+        node = plan.Value(routing.NextVar(node))
+
+    route.append(customers.customers[manager.IndexToNode(node)])
+    return route
 
 
 def plot_vehicle_routes(veh_route, ax1, customers, vehicles):

@@ -133,10 +133,7 @@ def main(puzzle='', n=''):
     for i in range(n):
       row = [str(pict[i, j].Value()) for j in range(n)]
       for j in range(n):
-        if row[j] == '0':
-          row[j] = ' '
-        else:
-          row[j] = '#'
+        row[j] = ' ' if row[j] == '0' else '#'
       print(''.join(row))
     print()
 
@@ -153,14 +150,11 @@ def read_problem(file):
   f = open(file, 'r')
   n = int(f.readline())
   puzzle = []
-  for i in range(n):
+  for _ in range(n):
     x = f.readline()
     row = [0] * n
     for j in range(n):
-      if x[j] == '.':
-        tmp = -1
-      else:
-        tmp = int(x[j])
+      tmp = -1 if x[j] == '.' else int(x[j])
       row[j] = tmp
     puzzle.append(row)
   return [puzzle, n]

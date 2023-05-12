@@ -198,14 +198,18 @@ def GetOptimalSchedule(demand):
 
     selection = AggregateItemCollectionsOptimally(
         combinations, _NUM_WORKERS.value, [a[0] / 100.0 for a in demand])
-    output = []
-    for i in range(len(selection)):
-        if selection[i] != 0:
-            output.append((selection[i], [(combinations[i][t], demand[t][1])
-                                          for t in range(len(demand))
-                                          if combinations[i][t] != 0]))
-
-    return output
+    return [
+        (
+            selection[i],
+            [
+                (combinations[i][t], demand[t][1])
+                for t in range(len(demand))
+                if combinations[i][t] != 0
+            ],
+        )
+        for i in range(len(selection))
+        if selection[i] != 0
+    ]
 
 
 def main(_):
@@ -221,10 +225,7 @@ def main(_):
     selection = GetOptimalSchedule(demand)
     print()
     installed = 0
-    installed_per_type = {}
-    for a in demand:
-        installed_per_type[a[1]] = 0
-
+    installed_per_type = {a[1]: 0 for a in demand}
     # [START print_solution]
     print('*** output solution ***')
     for template in selection:

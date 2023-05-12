@@ -45,9 +45,7 @@ def main():
     hours = solver.IntVar(0, num_hours, 'h[%i]' % i)
     selected_schedules.append(selected_schedule)
     vendors_stat.append(hours)
-    tmp.append(selected_schedule)
-    tmp.append(hours)
-
+    tmp.extend((selected_schedule, hours))
     solver.Add(solver.AllowedAssignments(tmp, possible_schedules))
 
   #

@@ -114,7 +114,7 @@ def clustering_sat():
     status = solver.Solve(model)
     print(solver.ResponseStats())
 
-    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
+    if status in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
         visited = set()
         for g in range(num_groups):
             for n in range(num_nodes):
@@ -124,7 +124,7 @@ def clustering_sat():
                     for o in range(n + 1, num_nodes):
                         if solver.BooleanValue(neighbors[n, o]):
                             visited.add(o)
-                            output += ' ' + str(o)
+                            output += f' {str(o)}'
                     print('Group', g, ':', output)
                     break
 

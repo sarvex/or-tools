@@ -36,7 +36,7 @@ Remove the site-package that contains \"""" + module_file + """\", either manual
 # Returns the n_th parent of file
 def n_dirname(n, file):
   directory = file
-  for x in range(0, n):
+  for _ in range(0, n):
     directory = dirname(directory)
   return directory
 
@@ -66,9 +66,9 @@ if __name__ == "__main__":
   logging.basicConfig(
       format="[%(levelname)s] %(message)s", stream=sys.stdout, level=loglevel)
 
-  logging.info("Python path : " + sys.executable)
-  logging.info("Python version : " + sys.version)
-  logging.info("sys.path : " + str(sys.path))
+  logging.info(f"Python path : {sys.executable}")
+  logging.info(f"Python version : {sys.version}")
+  logging.info(f"sys.path : {str(sys.path)}")
   ortools_project_path = n_dirname(
       3, abspath(inspect.getfile(inspect.currentframe())))
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
   ortools_module_file = inspect.getfile(ortools)
   ortools_module_path = n_dirname(3, ortools_module_file)
   if (ortools_module_path == ortools_project_path):
-    logging.info("Or-tools is imported from : " + ortools_module_file)
+    logging.info(f"Or-tools is imported from : {ortools_module_file}")
   else:
     log_error_and_exit(wrong_module(ortools_module_file, "ortools"))
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
   protobuf_module_file = inspect.getfile(google.protobuf)
   protobuf_module_path = n_dirname(7, protobuf_module_file)
   if (protobuf_module_path == ortools_project_path):
-    logging.info("Protobuf is imported from : " + protobuf_module_file)
+    logging.info(f"Protobuf is imported from : {protobuf_module_file}")
   else:
     log_error_and_exit(wrong_module(protobuf_module_file, "protobuf"))
 

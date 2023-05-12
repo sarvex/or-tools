@@ -49,11 +49,11 @@ def ReadData(filename):
   max_capacity = max(capacity)
   nb_colors = int(f.readline())
   nb_slabs = int(f.readline())
-  wc = [[int(j) for j in f.readline().split()] for i in range(nb_slabs)]
+  wc = [[int(j) for j in f.readline().split()] for _ in range(nb_slabs)]
   weights = [x[0] for x in wc]
   colors = [x[1] for x in wc]
   loss = [
-      min([x for x in capacity if x >= c]) - c for c in range(max_capacity + 1)
+      min(x for x in capacity if x >= c) - c for c in range(max_capacity + 1)
   ]
   color_orders = [[o
                    for o in range(nb_slabs)
@@ -106,8 +106,7 @@ class SteelDecisionBuilder(pywrapcp.PyDecisionBuilder):
                    for i in range(var.Min(),
                                   var.Max() + 1)
                    if var.Contains(i) and loads[i] + weight <= self.__maxcapa)
-        decision = solver.AssignVariableValue(var, v)
-        return decision
+        return solver.AssignVariableValue(var, v)
     else:
       return None
 
@@ -128,17 +127,15 @@ class SteelDecisionBuilder(pywrapcp.PyDecisionBuilder):
 
   def NextVar(self):
     """ mindom size heuristic with tie break on the weights of orders """
-    res = [(self.__x[o].Size(), -self.__weights[o], self.__x[o])
-           for o in range(self.__nb_slabs)
-           if self.__x[o].Size() > 1]
-    if res:
+    if res := [(self.__x[o].Size(), -self.__weights[o], self.__x[o])
+               for o in range(self.__nb_slabs) if self.__x[o].Size() > 1]:
       res.sort()
       return res[0][2], -res[0][1]  # returns the order var and its weight
     else:
       return None, None
 
   def DebugString(self):
-    return 'SteelMillDecisionBuilder(' + str(self.__x) + ')'
+    return f'SteelMillDecisionBuilder({str(self.__x)})'
 
 
 def main(args):
@@ -147,9 +144,9 @@ def main(args):
       ReadData(args.data)
   nb_colors = len(color_orders)
   solver = pywrapcp.Solver('Steel Mill Slab')
-  x = [solver.IntVar(0, nb_slabs - 1, 'x' + str(i)) for i in range(nb_slabs)]
+  x = [solver.IntVar(0, nb_slabs - 1, f'x{str(i)}') for i in range(nb_slabs)]
   load_vars = [
-      solver.IntVar(0, max_capacity - 1, 'load_vars' + str(i))
+      solver.IntVar(0, max_capacity - 1, f'load_vars{str(i)}')
       for i in range(nb_slabs)
   ]
 

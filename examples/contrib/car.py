@@ -63,9 +63,7 @@ def main(num_sol=3):
 
   capacity = [(1, 2), (2, 3), (1, 3), (2, 5), (1, 5)]
 
-  optionDemand = [
-      sum([demand[j] * option[i][j] for j in Cars]) for i in Options
-  ]
+  optionDemand = [sum(demand[j] * option[i][j] for j in Cars) for i in Options]
 
   #
   # declare variables
@@ -98,7 +96,7 @@ def main(num_sol=3):
       s_range = list(range(0, nbSlots - (i + 1) * capacity[o][1]))
       ss = [setup[o, s] for s in s_range]
       cc = optionDemand[o] - (i + 1) * capacity[o][0]
-      if len(ss) > 0 and cc >= 0:
+      if ss and cc >= 0:
         solver.Add(solver.Sum(ss) >= cc)
 
   #
@@ -110,7 +108,7 @@ def main(num_sol=3):
   solver.NewSearch(db)
   num_solutions = 0
   while solver.NextSolution():
-    print("slot:%s" % ",".join([str(slot[i].Value()) for i in Slots]))
+    print(f'slot:{",".join([str(slot[i].Value()) for i in Slots])}')
     print("setup:")
     for o in Options:
       print("%i/%i:" % (capacity[o][0], capacity[o][1]), end=" ")

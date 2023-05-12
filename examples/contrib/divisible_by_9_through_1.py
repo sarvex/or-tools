@@ -85,7 +85,7 @@ def my_mod(solver, x, y, r):
     solver.Add(r >= 0)
     solver.Add(x * r >= 0)
 
-  if not isinstance(r, int) and not isinstance(r, int):
+  if not isinstance(r, int):
     solver.Add(-abs(y) < r)
     solver.Add(r < abs(y))
 

@@ -168,15 +168,12 @@ def read_problem(file):
   f = open(file, "r")
   n = int(f.readline())
   game = []
-  for i in range(n):
+  for _ in range(n):
     x = f.readline()
     row_x = (x.rstrip()).split(" ")
     row = [0] * n
     for j in range(n):
-      if row_x[j] == ".":
-        tmp = 0
-      else:
-        tmp = int(row_x[j])
+      tmp = 0 if row_x[j] == "." else int(row_x[j])
       row[j] = tmp
     game.append(row)
   return [game, n]

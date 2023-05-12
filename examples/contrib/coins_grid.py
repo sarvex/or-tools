@@ -114,12 +114,6 @@ def main(n, c):
 
 
 if __name__ == "__main__":
-  # data
-  n = 5  # the grid size
-  c = 2  # number of coins per row/column
-  if len(sys.argv) > 1:
-    n = int(sys.argv[1])
-  if len(sys.argv) > 2:
-    c = int(sys.argv[2])
-
+  n = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+  c = int(sys.argv[2]) if len(sys.argv) > 2 else 2
   main(n, c)

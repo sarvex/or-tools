@@ -78,9 +78,8 @@ def read_model(filename):
             if not stripped_line:
                 continue
 
-            match_section_def = re.match(r'<([\w\s]+)>', stripped_line)
-            if match_section_def:
-                section_name = match_section_def.group(1)
+            if match_section_def := re.match(r'<([\w\s]+)>', stripped_line):
+                section_name = match_section_def[1]
                 if section_name == 'end':
                     continue
 
@@ -88,22 +87,21 @@ def read_model(filename):
                 model[section_name] = current_info
                 continue
 
-            match_single_number = re.match(r'^([0-9]+)$', stripped_line)
-            if match_single_number:
-                current_info.value = int(match_single_number.group(1))
+            if match_single_number := re.match(r'^([0-9]+)$', stripped_line):
+                current_info.value = int(match_single_number[1])
                 continue
 
-            match_key_value = re.match(r'^([0-9]+)\s+([0-9]+)$', stripped_line)
-            if match_key_value:
-                key = int(match_key_value.group(1))
-                value = int(match_key_value.group(2))
+            if match_key_value := re.match(
+                r'^([0-9]+)\s+([0-9]+)$', stripped_line
+            ):
+                key = int(match_key_value[1])
+                value = int(match_key_value[2])
                 current_info.index_map[key] = value
                 continue
 
-            match_pair = re.match(r'^([0-9]+),([0-9]+)$', stripped_line)
-            if match_pair:
-                left = int(match_pair.group(1))
-                right = int(match_pair.group(2))
+            if match_pair := re.match(r'^([0-9]+),([0-9]+)$', stripped_line):
+                left = int(match_pair[1])
+                right = int(match_pair[2])
                 current_info.set_of_pairs.add((left, right))
                 continue
 
@@ -286,11 +284,7 @@ def solve_scheduling_model(model, hint):
 
     model = cp_model.CpModel()
 
-    # pod[t] indicates on which pod the task is performed.
-    pods = {}
-    for t in all_tasks:
-        pods[t] = model.NewIntVar(0, num_pods - 1, f'pod_{t}')
-
+    pods = {t: model.NewIntVar(0, num_pods - 1, f'pod_{t}') for t in all_tasks}
     # Create the variables
     intervals = []
     demands = []

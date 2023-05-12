@@ -67,9 +67,7 @@ from ortools.constraint_solver import pywrapcp
 def var_matrix_array(solver, rows, cols, lb, ub, name):
   x = []
   for i in range(rows):
-    t = []
-    for j in range(cols):
-      t.append(solver.IntVar(lb, ub, "%s[%i,%i]" % (name, i, j)))
+    t = [solver.IntVar(lb, ub, "%s[%i,%i]" % (name, i, j)) for j in range(cols)]
     x.append(t)
   return x
 

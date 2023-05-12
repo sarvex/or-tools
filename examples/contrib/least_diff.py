@@ -62,7 +62,7 @@ def main(unused_argv):
   letters = [a, b, c, d, e, f, g, h, i, j]
 
   digit_vector = [10000, 1000, 100, 10, 1]
-  x = solver.ScalProd(letters[0:5], digit_vector)
+  x = solver.ScalProd(letters[:5], digit_vector)
   y = solver.ScalProd(letters[5:], digit_vector)
   diff = x - y
 

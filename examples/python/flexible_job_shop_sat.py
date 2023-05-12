@@ -101,8 +101,6 @@ def flexible_jobshop():
             max_duration = task[0][0]
 
             num_alternatives = len(task)
-            all_alternatives = range(num_alternatives)
-
             for alt_id in range(1, num_alternatives):
                 alt_duration = task[alt_id][0]
                 min_duration = min(min_duration, alt_duration)
@@ -110,12 +108,12 @@ def flexible_jobshop():
 
             # Create main interval for the task.
             suffix_name = '_j%i_t%i' % (job_id, task_id)
-            start = model.NewIntVar(0, horizon, 'start' + suffix_name)
-            duration = model.NewIntVar(min_duration, max_duration,
-                                       'duration' + suffix_name)
-            end = model.NewIntVar(0, horizon, 'end' + suffix_name)
-            interval = model.NewIntervalVar(start, duration, end,
-                                            'interval' + suffix_name)
+            start = model.NewIntVar(0, horizon, f'start{suffix_name}')
+            duration = model.NewIntVar(
+                min_duration, max_duration, f'duration{suffix_name}'
+            )
+            end = model.NewIntVar(0, horizon, f'end{suffix_name}')
+            interval = model.NewIntervalVar(start, duration, end, f'interval{suffix_name}')
 
             # Store the start for the solution.
             starts[(job_id, task_id)] = start
@@ -128,15 +126,21 @@ def flexible_jobshop():
             # Create alternative intervals.
             if num_alternatives > 1:
                 l_presences = []
+                all_alternatives = range(num_alternatives)
+
                 for alt_id in all_alternatives:
                     alt_suffix = '_j%i_t%i_a%i' % (job_id, task_id, alt_id)
-                    l_presence = model.NewBoolVar('presence' + alt_suffix)
-                    l_start = model.NewIntVar(0, horizon, 'start' + alt_suffix)
+                    l_presence = model.NewBoolVar(f'presence{alt_suffix}')
+                    l_start = model.NewIntVar(0, horizon, f'start{alt_suffix}')
                     l_duration = task[alt_id][0]
-                    l_end = model.NewIntVar(0, horizon, 'end' + alt_suffix)
+                    l_end = model.NewIntVar(0, horizon, f'end{alt_suffix}')
                     l_interval = model.NewOptionalIntervalVar(
-                        l_start, l_duration, l_end, l_presence,
-                        'interval' + alt_suffix)
+                        l_start,
+                        l_duration,
+                        l_end,
+                        l_presence,
+                        f'interval{alt_suffix}',
+                    )
                     l_presences.append(l_presence)
 
                     # Link the primary/global variables with the local ones.
@@ -191,7 +195,7 @@ def flexible_jobshop():
                 '  task_%i_%i starts at %i (alt %i, machine %i, duration %i)' %
                 (job_id, task_id, start_value, selected, machine, duration))
 
-    print('Solve status: %s' % solver.StatusName(status))
+    print(f'Solve status: {solver.StatusName(status)}')
     print('Optimal objective value: %i' % solver.ObjectiveValue())
     print('Statistics')
     print('  - conflicts : %i' % solver.NumConflicts())

@@ -52,11 +52,6 @@ def main():
   price = [215, 275, 335, 355, 420, 580]
   total = 1505
 
-  products = [
-      "mixed fruit", "french fries", "side salad", "host wings",
-      "mozzarella sticks", "samples place"
-  ]
-
   # declare variables
 
   # how many items of each dish
@@ -86,6 +81,11 @@ def main():
   num_solutions = collector.SolutionCount()
   print("num_solutions: ", num_solutions)
   if num_solutions > 0:
+    products = [
+        "mixed fruit", "french fries", "side salad", "host wings",
+        "mozzarella sticks", "samples place"
+    ]
+
     for s in range(num_solutions):
       print("z:", collector.Value(s, z) / 100.0)
       xval = [collector.Value(s, x[i]) for i in range(num_prices)]

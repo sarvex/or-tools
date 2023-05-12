@@ -18,8 +18,7 @@ from ortools.init import pywrapinit
 
 
 def Announce(solver, api_type):
-    print('---- Integer programming example with ' + solver + ' (' + api_type +
-          ') -----')
+    print(f'---- Integer programming example with {solver} ({api_type}) -----')
 
 
 def RunIntegerExampleNaturalLanguageAPI(optimization_problem_type):

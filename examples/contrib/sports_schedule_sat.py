@@ -90,10 +90,10 @@ def csv_dump_results(solver, fixtures, num_teams, num_matchdays, csv_basename):
 
     checkname = csv_basename
     while os.path.exists(checkname):
-        checkname = re.sub(r"\.csv", "_{}.csv".format(idx), csv_basename)
+        checkname = re.sub(r"\.csv", f"_{idx}.csv", csv_basename)
         idx += 1
-        # or just get rid of it, but that is often undesireable
-        # os.unlink(csv_basename)
+            # or just get rid of it, but that is often undesireable
+            # os.unlink(csv_basename)
 
     with open(checkname, 'w', newline='') as csvfile:
         fieldnames = ['day', 'game', 'home', 'away']
@@ -113,8 +113,7 @@ def screen_dump_results(solver, fixtures, num_teams, num_matchdays):
         game = 0
         for home in teams:
             for away in teams:
-                match_on = solver.Value(fixtures[d][home][away])
-                if match_on:
+                if match_on := solver.Value(fixtures[d][home][away]):
                     game += 1
                     print('day %i game %i home %i away %i' %
                           (d + 1, game, home + 1, away + 1))
@@ -225,10 +224,7 @@ def assign_matches(num_teams,
             for opponent in teams:
                 if t == opponent:
                     continue
-                # t is home possibility
-                possible_opponents.append(fixtures[d][t][opponent])
-                # t is away possibility
-                possible_opponents.append(fixtures[d][opponent][t])
+                possible_opponents.extend((fixtures[d][t][opponent], fixtures[d][opponent][t]))
             model.Add(
                 sum(possible_opponents) == 1)  # can only play one game per day
 
@@ -247,9 +243,7 @@ def assign_matches(num_teams,
         for opponent in teams:
             if t == opponent:
                 continue
-            possible_days = []
-            for d in matchdays:
-                possible_days.append(fixtures[d][t][opponent])
+            possible_days = [fixtures[d][t][opponent] for d in matchdays]
             if matchups % 2 == 0 and matchups_exact:
                 model.Add(sum(possible_days) == fixture_repeats)
             else:
@@ -279,17 +273,15 @@ def assign_matches(num_teams,
                 current_home = []
                 pairings = []
                 # if m = matchups - 1, then last time through
-                days = int(days_to_play)
+                days = days_to_play
                 if m == matchups - 1:
                     days = int(
                         min(days_to_play, num_matchdays - m * days_to_play))
                 # print('days',days)
                 for d in range(days):
                     theday = int(d + m * days_to_play)
-                    # print('theday',theday)
-                    pairings.append(fixtures[theday][t][opponent])
-                    pairings.append(fixtures[theday][opponent][t])
-                    # current_home.append(fixtures[theday][t][opponent])
+                    pairings.extend((fixtures[theday][t][opponent], fixtures[theday][opponent][t]))
+                                    # current_home.append(fixtures[theday][t][opponent])
                 if m == matchups - 1 and not matchups_exact:
                     # in the last group of games, if the number of
                     # games left to play isn't quite right, then it
@@ -407,7 +399,6 @@ def assign_matches(num_teams,
 
     optimal_value = matchups * (num_teams - 2)
     if not matchups_exact:
-        # fiddle a bit, based on experiments with low values of N and D
         if num_matchdays % 2:
             # odd number of days
             optimal_value = min(num_matchdays + 1, optimal_value)
@@ -428,7 +419,7 @@ def assign_matches(num_teams,
     # solution, this isn't really
     # necessary I think
     status = solver.Solve(model)
-    print('Solve status: %s' % solver.StatusName(status))
+    print(f'Solve status: {solver.StatusName(status)}')
     print('Statistics')
     print('  - conflicts : %i' % solver.NumConflicts())
     print('  - branches  : %i' % solver.NumBranches())

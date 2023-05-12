@@ -87,9 +87,7 @@ def main(base=10, start=1, len1=1, len2=4):
   lights = ["r", "ry", "g", "y"]
 
   # The allowed combinations
-  allowed = []
-  allowed.extend([(r, r, g, g), (ry, r, y, r), (g, g, r, r), (y, r, ry, r)])
-
+  allowed = [(r, r, g, g), (ry, r, y, r), (g, g, r, r), (y, r, ry, r)]
   #
   # declare variables
   #

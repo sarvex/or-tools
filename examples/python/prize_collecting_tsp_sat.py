@@ -161,7 +161,7 @@ def prize_collecting_tsp():
     solver.parameters.log_search_progress = True
 
     status = solver.Solve(model)
-    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
+    if status in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
         print_solution(solver, visited_nodes, used_arcs, num_nodes)
 
 

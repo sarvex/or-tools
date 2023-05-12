@@ -77,15 +77,13 @@ def main():
 
   # in_flow == out_flow
   for i in nodes:
-    if i != start and i != end:
+    if i not in [start, end]:
       solver.Add(out_flow[i] - in_flow[i] == 0)
 
-  s1 = [x[i, start] for i in nodes if c[i][start] > 0]
-  if len(s1) > 0:
+  if s1 := [x[i, start] for i in nodes if c[i][start] > 0]:
     solver.Add(solver.Sum([x[i, start] for i in nodes if c[i][start] > 0] == 0))
 
-  s2 = [x[end, j] for j in nodes if c[end][j] > 0]
-  if len(s2) > 0:
+  if s2 := [x[end, j] for j in nodes if c[end][j] > 0]:
     solver.Add(solver.Sum([x[end, j] for j in nodes if c[end][j] > 0]) == 0)
 
   # objective: maximize total cost

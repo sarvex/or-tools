@@ -76,9 +76,7 @@ def main(row_sums="", col_sums=""):
   # declare variables
   x = []
   for i in range(r):
-    t = []
-    for j in range(c):
-      t.append(solver.IntVar(0, 1, "x[%i,%i]" % (i, j)))
+    t = [solver.IntVar(0, 1, "x[%i,%i]" % (i, j)) for j in range(c)]
     x.append(t)
   x_flat = [x[i][j] for i in range(r) for j in range(c)]
 

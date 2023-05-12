@@ -111,12 +111,8 @@ class BooleanSumEven(pywrapcp.PyConstraint):
       solver.Fail()
 
     if num_possible == num_always + 1:
-      possible_true_index = -1
-      for i in range(len(self.__vars)):
-        if not self.__vars[i].Bound():
-          possible_true_index = i
-          break
-
+      possible_true_index = next(
+          (i for i in range(len(self.__vars)) if not self.__vars[i].Bound()), -1)
       if possible_true_index != -1:
         self.__vars[possible_true_index].SetValue(num_always % 2)
 
@@ -194,7 +190,7 @@ class GridSinglePath(pywrapcp.PyConstraint):
       candidate = to_process.popleft()
       visited_points.add(candidate)
       for neighbor in neighbors[candidate]:
-        if not neighbor in visited_points:
+        if neighbor not in visited_points:
           to_process.append(neighbor)
           visited_points.add(neighbor)
 

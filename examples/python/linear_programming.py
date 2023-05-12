@@ -17,8 +17,7 @@ from ortools.linear_solver import pywraplp
 
 
 def Announce(solver, api_type):
-    print('---- Linear programming example with ' + solver + ' (' + api_type +
-          ') -----')
+    print(f'---- Linear programming example with {solver} ({api_type}) -----')
 
 
 def RunLinearExampleNaturalLanguageAPI(optimization_problem_type):
@@ -44,7 +43,7 @@ def RunLinearExampleNaturalLanguageAPI(optimization_problem_type):
 
     SolveAndPrint(solver, [x1, x2, x3], [c0, c1, c2], optimization_problem_type != 'PDLP')
     # Print a linear expression's solution value.
-    print('Sum of vars: %s = %s' % (sum_of_vars, sum_of_vars.solution_value()))
+    print(f'Sum of vars: {sum_of_vars} = {sum_of_vars.solution_value()}')
 
 
 def RunLinearExampleCppStyleAPI(optimization_problem_type):

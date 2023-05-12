@@ -15,13 +15,13 @@ from ortools.constraint_solver import pywrapcp
 
 def dudeney(n):
   solver = pywrapcp.Solver('Dudeney')
-  x = [solver.IntVar(list(range(10)), 'x' + str(i)) for i in range(n)]
+  x = [solver.IntVar(list(range(10)), f'x{str(i)}') for i in range(n)]
   nb = solver.IntVar(list(range(3, 10**n)), 'nb')
   s = solver.IntVar(list(range(1, 9 * n + 1)), 's')
 
   solver.Add(nb == s * s * s)
-  solver.Add(sum([10**(n - i - 1) * x[i] for i in range(n)]) == nb)
-  solver.Add(sum([x[i] for i in range(n)]) == s)
+  solver.Add(sum(10**(n - i - 1) * x[i] for i in range(n)) == nb)
+  solver.Add(sum(x[i] for i in range(n)) == s)
 
   solution = solver.Assignment()
   solution.Add(nb)

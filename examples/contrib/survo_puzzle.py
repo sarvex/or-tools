@@ -154,7 +154,7 @@ def read_problem(file):
   rowsums = [int(t) for t in (rowsums.rstrip()).split(",")]
   colsums = [int(t) for t in (colsums.rstrip()).split(",")]
   game = []
-  for i in range(r):
+  for _ in range(r):
     x = f.readline()
     x = [int(t) for t in (x.rstrip()).split(",")]
     row = [0] * c

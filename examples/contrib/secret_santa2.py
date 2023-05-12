@@ -149,7 +149,7 @@ def main(singe=0):
   ]
 
   # total of 'distance', to maximize
-  z = solver.IntVar(0, n * n * n, 'z')
+  z = solver.IntVar(0, n**2 * n, 'z')
 
   #
   # constraints

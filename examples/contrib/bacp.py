@@ -56,11 +56,9 @@ def main(args):
 
   solver = pywrapcp.Solver('Balanced Academic Curriculum Problem')
 
-  x = [
-      solver.IntVar(0, nb_periods - 1, 'x' + str(i)) for i in range(nb_courses)
-  ]
+  x = [solver.IntVar(0, nb_periods - 1, f'x{str(i)}') for i in range(nb_courses)]
   load_vars = [
-      solver.IntVar(0, sum(credits), 'load_vars' + str(i))
+      solver.IntVar(0, sum(credits), f'load_vars{str(i)}')
       for i in range(nb_periods)
   ]
 

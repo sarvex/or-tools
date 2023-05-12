@@ -143,7 +143,7 @@ def main():
       print("Table %d: " % i)
       for j in MRANGE:
         if tables[j].Value() == i:
-          print(names[j] + " ")
+          print(f"{names[j]} ")
       print()
 
     print()

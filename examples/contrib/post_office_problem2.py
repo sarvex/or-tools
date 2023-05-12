@@ -93,8 +93,7 @@ def main():
   solver.Add(num_workers == solver.Sum(x))
 
   for i in days:
-    s = solver.Sum(
-        [x[j] for j in days if j != (i + 5) % n and j != (i + 6) % n])
+    s = solver.Sum([x[j] for j in days if j not in [(i + 5) % n, (i + 6) % n]])
     solver.Add(s >= need[i])
 
   # objective

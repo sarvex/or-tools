@@ -65,10 +65,11 @@ def jobshop_with_maintenance():
             machine = task[0]
             duration = task[1]
             suffix = '_%i_%i' % (job_id, task_id)
-            start_var = model.NewIntVar(0, horizon, 'start' + suffix)
-            end_var = model.NewIntVar(0, horizon, 'end' + suffix)
-            interval_var = model.NewIntervalVar(start_var, duration, end_var,
-                                                'interval' + suffix)
+            start_var = model.NewIntVar(0, horizon, f'start{suffix}')
+            end_var = model.NewIntVar(0, horizon, f'end{suffix}')
+            interval_var = model.NewIntervalVar(
+                start_var, duration, end_var, f'interval{suffix}'
+            )
             all_tasks[job_id, task_id] = task_type(start=start_var,
                                                    end=end_var,
                                                    interval=interval_var)
@@ -119,7 +120,7 @@ def jobshop_with_maintenance():
         for machine in all_machines:
             # Sort by starting time.
             assigned_jobs[machine].sort()
-            sol_line_tasks = 'Machine ' + str(machine) + ': '
+            sol_line_tasks = f'Machine {str(machine)}: '
             sol_line = '           '
 
             for assigned_task in assigned_jobs[machine]:

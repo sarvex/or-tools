@@ -35,20 +35,23 @@ def build_pairs(rows, cols):
     for x in range(rows):
         for y in range(cols):
             for dx in (-1, 0, 1):
-                for dy in (-1, 0, 1):
-                    if (x + dx >= 0 and x + dx < rows and y + dy >= 0 and
-                            y + dy < cols and (dx != 0 or dy != 0)):
-                        result.append(
-                            (x * cols + y, (x + dx) * cols + (y + dy)))
+                result.extend(
+                    (x * cols + y, (x + dx) * cols + (y + dy))
+                    for dy in (-1, 0, 1)
+                    if (
+                        x + dx >= 0
+                        and x + dx < rows
+                        and y + dy >= 0
+                        and y + dy < cols
+                        and (dx != 0 or dy != 0)
+                    )
+                )
     return result
 
 
 def print_solution(positions, rows, cols):
     """Print a current solution."""
-    # Create empty board.
-    board = []
-    for _ in range(rows):
-        board.append([0] * cols)
+    board = [[0] * cols for _ in range(rows)]
     # Fill board with solution value.
     for k in range(rows * cols):
         position = positions[k]
@@ -63,12 +66,10 @@ def print_matrix(game):
     rows = len(game)
     cols = len(game[0])
     for i in range(rows):
-        line = ''
-        for j in range(cols):
-            if game[i][j] == 0:
-                line += '  .'
-            else:
-                line += '% 3s' % game[i][j]
+        line = ''.join(
+            '  .' if game[i][j] == 0 else '% 3s' % game[i][j]
+            for j in range(cols)
+        )
         print(line)
 
 

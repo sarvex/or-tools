@@ -19,15 +19,12 @@ def SolveRosteringWithTravel():
   all_jobs = range(num_jobs)
 
   intervals = []
-  optional_intervals = []
   performed = []
   starts = []
   ends = []
   travels = []
 
-  for m in all_machines:
-    optional_intervals.append([])
-
+  optional_intervals = [[] for _ in all_machines]
   for i in all_jobs:
     # Create main interval.
     start = model.NewIntVar(jobs[i][1], horizon, 'start_%i' % i)

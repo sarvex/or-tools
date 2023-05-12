@@ -156,10 +156,7 @@ def main(n=3, sol='CBC', use_output_matrix=0):
   else:
     for i in range_n:
       for j in range_n:
-        print(
-            sum([int(k * x[i, j, k].SolutionValue()) for k in range_N]),
-            ' ',
-            end=' ')
+        print(sum(int(k * x[i, j, k].SolutionValue()) for k in range_N), ' ', end=' ')
       print()
 
   print('\nx:')
@@ -176,19 +173,13 @@ def main(n=3, sol='CBC', use_output_matrix=0):
 
 
 if __name__ == '__main__':
-  n = 3
   sol = 'CBC'
-  use_output_matrix = 0
-  if len(sys.argv) > 1:
-    n = int(sys.argv[1])
-
+  n = int(sys.argv[1]) if len(sys.argv) > 1 else 3
   if len(sys.argv) > 2:
     sol = sys.argv[2]
-    if sol != 'GLPK' and sol != 'CBC':
+    if sol not in ['GLPK', 'CBC']:
       print('Solver must be either GLPK or CBC')
       sys.exit(1)
 
-  if len(sys.argv) > 3:
-    use_output_matrix = int(sys.argv[3])
-
+  use_output_matrix = int(sys.argv[3]) if len(sys.argv) > 3 else 0
   main(n, sol, use_output_matrix)

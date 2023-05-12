@@ -60,7 +60,7 @@ def main():
   #
   # declare variables
   #
-  open = [solver.IntVar(warehouses, 'open[%i]% % i') for w in warehouses]
+  open = [solver.IntVar(warehouses, 'open[%i]% % i') for _ in warehouses]
   ship = {}
   for c in customers:
     for w in warehouses:

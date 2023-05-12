@@ -62,15 +62,15 @@ def main(unused_argv):
 
   # data
   n = 3
-  border_sum = n * n
+  border_sum = n**2
 
   # declare variables
-  total_sum = solver.IntVar(1, n * n * n * n, "total_sum")
+  total_sum = solver.IntVar(1, n**2 * n * n, "total_sum")
   # x[0..n-1,0..n-1]
   x = {}
   for i in range(n):
     for j in range(n):
-      x[(i, j)] = solver.IntVar(0, n * n, "x %i %i" % (i, j))
+      x[(i, j)] = solver.IntVar(0, n**2, "x %i %i" % (i, j))
 
   #
   # constraints

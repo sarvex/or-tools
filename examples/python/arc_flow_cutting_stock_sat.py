@@ -60,9 +60,7 @@ def regroup_and_count(raw_input):
     grouped = collections.defaultdict(int)
     for i in raw_input:
         grouped[i] += 1
-    output = []
-    for size, count in grouped.items():
-        output.append([size, count])
+    output = [[size, count] for size, count in grouped.items()]
     output.sort(reverse=False)
     return output
 
@@ -79,10 +77,8 @@ def price_usage(usage, capacities):
 
 def create_state_graph(items, max_capacity):
     """Create a state graph from a multiset of items, and a maximum capacity."""
-    states = []
-    state_to_index = {}
-    states.append(0)
-    state_to_index[0] = 0
+    states = [0]
+    state_to_index = {0: 0}
     transitions = []
 
     for item_index, size_and_count in enumerate(items):
@@ -212,13 +208,11 @@ def solve_cutting_stock_with_arc_flow_and_mip():
     objective_vars = []
     objective_coeffs = []
 
-    var_index = 0
-    for outgoing, incoming, item_index, card in transitions:
+    for var_index, (outgoing, incoming, item_index, card) in enumerate(transitions):
         count = items[item_index][1]
         count_var = model.new_int_var(
             0, count, 'a%i_i%i_f%i_t%i_c%i' % (var_index, item_index, incoming,
                                                outgoing, card))
-        var_index += 1
         incoming_vars[incoming].append(count_var)
         outgoing_vars[outgoing].append(count_var)
         item_vars[item_index].append(count_var)
@@ -260,7 +254,7 @@ def solve_cutting_stock_with_arc_flow_and_mip():
     status = solver.solve(model)
 
     ### Output the solution.
-    if status == mb.SolveStatus.OPTIMAL or status == mb.SolveStatus.FEASIBLE:
+    if status in [mb.SolveStatus.OPTIMAL, mb.SolveStatus.FEASIBLE]:
         print('Objective value = %f found in %.2f s' %
               (solver.objective_value, time.time() - start_time))
     else:

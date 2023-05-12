@@ -189,14 +189,11 @@ def read_problem(file):
   rows = int(f.readline())
   cols = int(f.readline())
   game = []
-  for i in range(rows):
+  for _ in range(rows):
     x = f.readline()
     row = [0] * cols
     for j in range(cols):
-      if x[j] == ".":
-        tmp = -1
-      else:
-        tmp = int(x[j])
+      tmp = -1 if x[j] == "." else int(x[j])
       row[j] = tmp
     game.append(row)
   return [game, rows, cols]

@@ -44,7 +44,7 @@ from ortools.constraint_solver import pywrapcp
 
 def subset_sum(solver, values, total):
   n = len(values)
-  x = [solver.IntVar(0, n) for i in range(n)]
+  x = [solver.IntVar(0, n) for _ in range(n)]
   ss = solver.IntVar(0, n)
 
   solver.Add(ss == solver.Sum(x))

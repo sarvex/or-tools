@@ -189,11 +189,7 @@ def solve_with_cp_sat(recipes, resources, orders):
     horizon = 22 * 60  # 10PM.
     start_work = 4 * 60  # 4am.
 
-    # Parse recipes.
-    recipe_by_name = {}
-    for recipe in recipes:
-        recipe_by_name[recipe.name] = recipe
-
+    recipe_by_name = {recipe.name: recipe for recipe in recipes}
     # Parse resources.
     resource_by_name = {}
     resource_list_by_skill_name = collections.defaultdict(list)
@@ -281,7 +277,7 @@ def solve_with_cp_sat(recipes, resources, orders):
     solver.parameters.log_search_progress = True
     status = solver.Solve(model)
 
-    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+    if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
         for order_id in sorted_orders:
             print(f'{order_id}:')
             for time_expr, event_id in orders_sequence_of_events[order_id]:

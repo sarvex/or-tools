@@ -235,7 +235,7 @@ def main(n):
     x_val = [1] + [x[i].Value() for i in range(n)]
     print('x:', x_val)
     for i in range(1, n + 1):
-      print('%s -> %s' % (nodes[x_val[i - 1] - 1], nodes[x_val[i] - 1]))
+      print(f'{nodes[x_val[i - 1] - 1]} -> {nodes[x_val[i] - 1]}')
 
   solver.EndSearch()
 
@@ -255,8 +255,7 @@ def main(n):
 if __name__ == '__main__':
   for n in range(1, 15):
     result = main(n)
-    result_len = len(result)
-    if result_len:
+    if result_len := len(result):
       print()
       print('Found a solution of length %i:' % result_len, result)
       print()

@@ -69,12 +69,10 @@ def escape_the_maze(params, output_proto):
 
     # Starts building the model.
     model = cp_model.CpModel()
-    position_to_rank = {}
-
-    for coord in reverse_map:
-        position_to_rank[coord] = model.NewIntVar(0, counter - 1,
-                                                  f'rank_{coord}')
-
+    position_to_rank = {
+        coord: model.NewIntVar(0, counter - 1, f'rank_{coord}')
+        for coord in reverse_map
+    }
     # Path constraints.
     model.Add(position_to_rank[start] == 0)
     model.Add(position_to_rank[end] == counter - 1)

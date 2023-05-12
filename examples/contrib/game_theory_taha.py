@@ -103,7 +103,7 @@ if __name__ == '__main__':
   sol = 'CBC'
   if len(sys.argv) > 1:
     sol = sys.argv[1]
-    if sol != 'GLPK' and sol != 'CBC':
+    if sol not in ['GLPK', 'CBC']:
       print('Solver must be either GLPK or CBC')
       sys.exit(1)
 

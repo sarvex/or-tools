@@ -118,11 +118,9 @@ def get_dict():
   alpha = "abcdefghijklmnopqrstuvwxyzåäö"
   d = {}
   rev = {}
-  count = 1
-  for a in alpha:
+  for count, a in enumerate(alpha, start=1):
     d[a] = count
     rev[count] = a
-    count += 1
   return d, rev
 
 

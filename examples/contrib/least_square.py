@@ -56,16 +56,15 @@ def main(sol='CBC'):
   a = [solver.NumVar(-100, 100, 'a[%i]' % i) for i in range(p + 1)]
 
   # to minimize
-  z = solver.Sum([
-      (F[i] - (sum([a[j] * t[i]**j for j in range(p + 1)]))) for i in range(num)
-  ])
+  z = solver.Sum(
+      [F[i] - sum(a[j] * t[i]**j for j in range(p + 1)) for i in range(num)])
 
   #
   # constraints
   #
   solver.Add(solver.Sum([20**i * a[i] for i in range(p + 1)]) == 0)
 
-  solver.Add((a[0] + sum([700.0**j * a[j] for j in range(1, p + 1)])) == 100.0)
+  solver.Add(a[0] + sum(700.0**j * a[j] for j in range(1, p + 1)) == 100.0)
 
   for i in range(num):
     solver.Add(
@@ -87,7 +86,7 @@ if __name__ == '__main__':
   sol = 'CBC'
   if len(sys.argv) > 1:
     sol = sys.argv[1]
-    if sol != 'GLPK' and sol != 'CBC':
+    if sol not in ['GLPK', 'CBC']:
       print('Solver must be either GLPK or CBC')
       sys.exit(1)
 

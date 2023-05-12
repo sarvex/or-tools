@@ -89,7 +89,7 @@ def main(unused_argv):
     print("cost:", solver.ObjectiveValue())
     print([("abcdefghij" [i], solver.Value(x[i])) for i in range(n)])
     print()
-    print('  - status          : %s' % solver.StatusName(status))
+    print(f'  - status          : {solver.StatusName(status)}')
     print('  - conflicts       : %i' % solver.NumConflicts())
     print('  - branches        : %i' % solver.NumBranches())
     print('  - wall time       : %f ms' % solver.WallTime())

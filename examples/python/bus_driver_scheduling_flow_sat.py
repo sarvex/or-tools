@@ -1796,7 +1796,7 @@ def find_minimum_number_of_drivers(shifts, params):
     # solver.parameters.lns_focus_on_decision_variables = True
     status = solver.Solve(model)
 
-    if status != cp_model.OPTIMAL and status != cp_model.FEASIBLE:
+    if status not in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
         return -1
 
     # Display solution

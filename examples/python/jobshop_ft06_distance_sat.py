@@ -88,10 +88,12 @@ def jobshop_ft06_distance():
         for j1 in range(len(job_intervals)):
             # Initial arc from the dummy node (0) to a task.
             start_lit = model.NewBoolVar('%i is first job' % j1)
-            arcs.append([0, j1 + 1, start_lit])
-            # Final arc from an arc to the dummy node.
-            arcs.append([j1 + 1, 0, model.NewBoolVar('%i is last job' % j1)])
-
+            arcs.extend(
+                (
+                    [0, j1 + 1, start_lit],
+                    [j1 + 1, 0, model.NewBoolVar('%i is last job' % j1)],
+                )
+            )
             for j2 in range(len(job_intervals)):
                 if j1 == j2:
                     continue

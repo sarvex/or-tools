@@ -12,12 +12,11 @@ class OneVarLns(pywrapcp.BaseLns):
     self.__index = 0
 
   def NextFragment(self):
-    if self.__index < self.Size():
-      self.AppendToFragment(self.__index)
-      self.__index += 1
-      return True
-    else:
+    if self.__index >= self.Size():
       return False
+    self.AppendToFragment(self.__index)
+    self.__index += 1
+    return True
 
 
 class MoveOneVar(pywrapcp.IntVarLocalSearchOperator):
@@ -86,16 +85,14 @@ def Solve(type):
   db = solver.Phase(vars, solver.CHOOSE_FIRST_UNBOUND, solver.ASSIGN_MAX_VALUE)
   ls = None
 
-  if type == 0:  # LNS
+  if type == 0:# LNS
     print('Large Neighborhood Search')
     one_var_lns = OneVarLns(vars)
     ls_params = solver.LocalSearchPhaseParameters(sum_var, one_var_lns, db)
-    ls = solver.LocalSearchPhase(vars, db, ls_params)
-  elif type == 1:  # LS
+  elif type == 1:# LS
     print('Local Search')
     move_one_var = MoveOneVar(vars)
     ls_params = solver.LocalSearchPhaseParameters(sum_var, move_one_var, db)
-    ls = solver.LocalSearchPhase(vars, db, ls_params)
   else:
     print('Local Search with Filter')
     move_one_var = MoveOneVar(vars)
@@ -103,8 +100,7 @@ def Solve(type):
     filter_manager = pywrapcp.LocalSearchFilterManager([sum_filter])
     ls_params = solver.LocalSearchPhaseParameters(sum_var, move_one_var, db, None,
                                                   filter_manager)
-    ls = solver.LocalSearchPhase(vars, db, ls_params)
-
+  ls = solver.LocalSearchPhase(vars, db, ls_params)
   collector = solver.LastSolutionCollector()
   collector.Add(vars)
   collector.AddObjective(sum_var)

@@ -71,14 +71,12 @@ def make_transition_tuples(pattern):
   for i in range(num_states):
     state = i + 1
     if tmp[i] == 0:
-      tuples.append((state, 0, state))
-      tuples.append((state, 1, state + 1))
-    else:
-      if i < num_states - 1:
-        if tmp[i + 1] == 1:
-          tuples.append((state, 1, state + 1))
-        else:
-          tuples.append((state, 0, state + 1))
+      tuples.extend(((state, 0, state), (state, 1, state + 1)))
+    elif i < num_states - 1:
+      if tmp[i + 1] == 1:
+        tuples.append((state, 1, state + 1))
+      else:
+        tuples.append((state, 0, state + 1))
   tuples.append((num_states, 0, num_states))
   return (tuples, num_states)
 
@@ -121,13 +119,10 @@ def main(rows, row_rule_len, row_rules, cols, col_rule_len, col_rules):
   board_label = []
   if rows * row_rule_len < cols * col_rule_len:
     for i in range(rows):
-      for j in range(cols):
-        board_label.append(board[i, j])
+      board_label.extend(board[i, j] for j in range(cols))
   else:
     for j in range(cols):
-      for i in range(rows):
-        board_label.append(board[i, j])
-
+      board_label.extend(board[i, j] for i in range(rows))
   #
   # constraints
   #

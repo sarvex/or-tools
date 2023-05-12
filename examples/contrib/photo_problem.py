@@ -85,7 +85,7 @@ def main(show_all_max=0):
   positions = [solver.IntVar(0, n - 1, "positions[%i]" % i) for i in range(n)]
 
   # successful preferences
-  z = solver.IntVar(0, n * n, "z")
+  z = solver.IntVar(0, n**2, "z")
 
   #
   # constraints

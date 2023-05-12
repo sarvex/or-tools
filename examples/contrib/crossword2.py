@@ -187,8 +187,7 @@ def main():
 def print_solution(A, E, alpha, n, word_len):
   for ee in range(n):
     print("%i: (%2i)" % (ee, E[ee].Value()), end=" ")
-    print("".join(
-        ["%s" % (alpha[A[ee, ii].Value()]) for ii in range(word_len)]))
+    print("".join([f"{alpha[A[ee, ii].Value()]}" for ii in range(word_len)]))
 
 
 if __name__ == "__main__":

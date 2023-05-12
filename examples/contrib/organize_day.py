@@ -69,8 +69,8 @@ def main():
   #
   # declare variables
   #
-  begins = [solver.IntVar(begin, end, 'begins[%i]% % i') for i in tasks]
-  ends = [solver.IntVar(begin, end, 'ends[%i]% % i') for i in tasks]
+  begins = [solver.IntVar(begin, end, 'begins[%i]% % i') for _ in tasks]
+  ends = [solver.IntVar(begin, end, 'ends[%i]% % i') for _ in tasks]
 
   #
   # constraints

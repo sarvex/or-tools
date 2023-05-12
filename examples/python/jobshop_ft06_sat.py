@@ -45,7 +45,7 @@ def jobshop_ft06():
                 [1, 0, 2, 3, 4, 5], [2, 1, 4, 5, 0, 3], [1, 3, 5, 0, 4, 2]]
 
     # Computes horizon dynamically.
-    horizon = sum([sum(durations[i]) for i in all_jobs])
+    horizon = sum(sum(durations[i]) for i in all_jobs)
 
     task_type = collections.namedtuple('task_type', 'start end interval')
 
@@ -67,9 +67,11 @@ def jobshop_ft06():
     for i in all_machines:
         machines_jobs = []
         for j in all_jobs:
-            for k in all_machines:
-                if machines[j][k] == i:
-                    machines_jobs.append(all_tasks[(j, k)].interval)
+            machines_jobs.extend(
+                all_tasks[(j, k)].interval
+                for k in all_machines
+                if machines[j][k] == i
+            )
         machine_to_jobs[i] = machines_jobs
         model.AddNoOverlap(machines_jobs)
 

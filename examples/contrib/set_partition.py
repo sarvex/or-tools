@@ -137,13 +137,13 @@ def main(n=16, num_sets=2):
       for j in range(n):
         a_val[i, j] = a[i, j].Value()
 
-    sq = sum([(j + 1) * a_val[0, j] for j in range(n)])
+    sq = sum((j + 1) * a_val[0, j] for j in range(n))
     print("sums:", sq)
-    sq2 = sum([((j + 1) * a_val[0, j])**2 for j in range(n)])
+    sq2 = sum(((j + 1) * a_val[0, j])**2 for j in range(n))
     print("sums squared:", sq2)
 
     for i in range(num_sets):
-      if sum([a_val[i, j] for j in range(n)]):
+      if sum(a_val[i, j] for j in range(n)):
         print(i + 1, ":", end=" ")
         for j in range(n):
           if a_val[i, j] == 1:

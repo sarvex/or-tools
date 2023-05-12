@@ -63,8 +63,8 @@ def my_cumulative(solver, s, d, r, b):
 
   # tasks = [i for i in range(len(s))]
   tasks = [i for i in range(len(s)) if r[i] > 0 and d[i] > 0]
-  times_min = min([s[i].Min() for i in tasks])
-  times_max = max([s[i].Max() + max(d) for i in tasks])
+  times_min = min(s[i].Min() for i in tasks)
+  times_max = max(s[i].Max() + max(d) for i in tasks)
   for t in range(times_min, times_max + 1):
     bb = []
     for i in tasks:

@@ -70,8 +70,8 @@ def main():
   # constraints
   #
   solver.Add(obj == solver.ScalProd(X, bid_amount))
-  for item in items_t:
-    solver.Add(solver.Sum([X[bid] for bid in items_t[item]]) <= 1)
+  for value in items_t.values():
+    solver.Add(solver.Sum([X[bid] for bid in value]) <= 1)
 
   # objective
   objective = solver.Maximize(obj, 1)

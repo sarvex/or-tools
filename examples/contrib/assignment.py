@@ -45,9 +45,7 @@ def main(cost, rows, cols):
   total_cost = solver.IntVar(0, 100, "total_cost")
   x = []
   for i in range(rows):
-    t = []
-    for j in range(cols):
-      t.append(solver.IntVar(0, 1, "x[%i,%i]" % (i, j)))
+    t = [solver.IntVar(0, 1, "x[%i,%i]" % (i, j)) for j in range(cols)]
     x.append(t)
   x_flat = [x[i][j] for i in range(rows) for j in range(cols)]
 

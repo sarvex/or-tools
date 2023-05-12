@@ -203,7 +203,7 @@ def main():
     #       Using atleast constraints is much harder
     #       in this model.
     #
-    if j % 7 == 5 or j % 7 == 6:
+    if j % 7 in [5, 6]:
       # special constraints for the weekends
       solver.Add(day_stat[j, day_shift] == 2)
       solver.Add(day_stat[j, night_shift] == 1)

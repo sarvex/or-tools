@@ -43,7 +43,7 @@ def cover_rectangle(num_squares):
         interval_x = model.NewIntervalVar(start_x, size, end_x, 'ix_%i' % i)
         interval_y = model.NewIntervalVar(start_y, size, end_y, 'iy_%i' % i)
 
-        area = model.NewIntVar(1, size_y * size_y, 'area_%i' % i)
+        area = model.NewIntVar(1, size_y**2, 'area_%i' % i)
         model.AddMultiplicationEquality(area, [size, size])
 
         areas.append(area)
@@ -96,8 +96,7 @@ def cover_rectangle(num_squares):
             for j in range(sol_s):
                 for k in range(sol_s):
                     if display[sol_y + j][sol_x + k] != ' ':
-                        print('ERROR between %s and %s' %
-                              (display[sol_y + j][sol_x + k], char))
+                        print(f'ERROR between {display[sol_y + j][sol_x + k]} and {char}')
                     display[sol_y + j][sol_x + k] = char
 
         for line in range(size_y):

@@ -132,7 +132,7 @@ def solve_with_duplicate_items(data, max_height, max_width):
 
     # Output proto to file.
     if _OUTPUT_PROTO.value:
-        print('Writing proto to %s' % _OUTPUT_PROTO.value)
+        print(f'Writing proto to {_OUTPUT_PROTO.value}')
         with open(_OUTPUT_PROTO.value, 'w') as text_file:
             text_file.write(str(model))
 
@@ -222,7 +222,7 @@ def solve_with_duplicate_optional_items(data, max_height, max_width):
 
     # Output proto to file.
     if _OUTPUT_PROTO.value:
-        print('Writing proto to %s' % _OUTPUT_PROTO.value)
+        print(f'Writing proto to {_OUTPUT_PROTO.value}')
         with open(_OUTPUT_PROTO.value, 'w') as text_file:
             text_file.write(str(model))
 
@@ -335,7 +335,7 @@ def solve_with_rotations(data, max_height, max_width):
 
     # Output proto to file.
     if _OUTPUT_PROTO.value:
-        print('Writing proto to %s' % _OUTPUT_PROTO.value)
+        print(f'Writing proto to {_OUTPUT_PROTO.value}')
         with open(_OUTPUT_PROTO.value, 'w') as text_file:
             text_file.write(str(model))
 
